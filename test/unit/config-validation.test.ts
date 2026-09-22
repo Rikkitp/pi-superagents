@@ -39,7 +39,6 @@ const defaults: ExtensionConfig = {
 		},
 		interceptSkillCommands: [],
 		makeSuperpowersSkillsOptInOnly: true,
-		superpowersSkills: [],
 		extensions: [],
 		tools: [],
 	},
@@ -357,7 +356,16 @@ void describe("config validation", () => {
 
 		assert.equal(result.blocked, false);
 		assert.ok(result.diagnostics.some((d) => d.code === "legacy_full_copy"));
-		assert.ok(result.diagnostics.some((d) => d.code === "defaults_only_key"));
+	});
+
+	void it("accepts the removed superpowersSkills key as an inert upgrade compatibility value", () => {
+		const result = loadEffectiveConfig(defaults, {
+			superagents: { superpowersSkills: ["using-superpowers"] },
+		});
+
+		assert.equal(result.blocked, false);
+		assert.deepEqual(result.diagnostics, []);
+		assert.deepEqual(result.config.superagents?.commands, defaults.superagents?.commands);
 	});
 
 	// -------------------------------------------------------------------------
@@ -520,34 +528,7 @@ void describe("config validation", () => {
 	});
 
 	// ---------------------------------------------------------------------------
-	// superpowersSkills validation and merge
 	// ---------------------------------------------------------------------------
-
-	void it("warns about superpowersSkills in user overrides as not user-configurable", () => {
-		const result = validateConfigObject({
-			superagents: {
-				superpowersSkills: ["writing-plans"],
-			},
-		});
-		assert.equal(result.blocked, false);
-		assert.ok(result.diagnostics.some((d) => d.path === "superagents.superpowersSkills" && d.code === "defaults_only_key"));
-	});
-
-	void it("passes superpowersSkills from defaults through to effective config", () => {
-		const result = loadEffectiveConfig({ superagents: { ...defaults.superagents, superpowersSkills: ["using-superpowers", "brainstorming"] } }, {});
-		assert.equal(result.blocked, false);
-		assert.deepEqual(result.config.superagents?.superpowersSkills, ["using-superpowers", "brainstorming"]);
-	});
-
-	void it("warns about non-array superpowersSkills in user overrides", () => {
-		const result = validateConfigObject({
-			superagents: {
-				superpowersSkills: "not-an-array",
-			},
-		});
-		assert.equal(result.blocked, false);
-		assert.ok(result.diagnostics.some((d) => d.path === "superagents.superpowersSkills"));
-	});
 
 	// ---------------------------------------------------------------------------
 	// superagents.extensions validation and merge

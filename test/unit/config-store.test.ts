@@ -43,7 +43,6 @@ function createMinimalConfigDir(): string {
 		superagents: {
 			commands: { "sp-test": { useSubagents: true } },
 			modelTiers: { cheap: { model: "test/model" } },
-			superpowersSkills: ["using-superpowers"],
 		},
 	};
 	return createTempConfigDir({

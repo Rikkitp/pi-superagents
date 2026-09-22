@@ -2,7 +2,7 @@
 
 Skills are specialized instructions loaded from `SKILL.md` files and injected into the agent's system prompt.
 
-This reference targets Pi `^0.85.1` and Superpowers `v6.2+`.
+This reference targets Pi `^0.87.0` and Superpowers `v6.4.1`.
 
 Maintenance note: skill discovery helpers are exercised through dynamic tests and plugin entrypoints. `.fallowrc.json` documents the small export surface that remains intentionally available for those dynamic paths.
 
@@ -120,7 +120,11 @@ Bounded role agents (delegated to subagents) support:
 
 The `skills` field in entrypoint agents is reserved for root lifecycle skills. These are skills with explicit trigger points (e.g., `verification-before-completion`, `receiving-code-review`, `finishing-a-development-branch`) that apply to the root session only.
 
-Superpowers skill selection inside an explicit workflow is trigger-driven via `using-superpowers`. With the default `superagents.makeSuperpowersSkillsOptInOnly: true`, ordinary prompts do not advertise that bootstrap skill and the obra/superpowers Pi package's automatic bootstrap hook is neutralized. `/sp-*` and explicit `/skill:*` commands still resolve the installed upstream skills. Do not preload domain skills through command config. Entrypoint `skills` are not overlay replacements — they are lifecycle/root skills with explicit trigger points.
+## Superpowers Skill Selection
+
+Pi discovers skills dynamically from the installed Superpowers package; Pi Superagents does not maintain a skill registry. Skill selection inside an explicit workflow is trigger-driven via `using-superpowers`. With the default `superagents.makeSuperpowersSkillsOptInOnly: true`, ordinary prompts do not advertise that bootstrap skill and the obra/superpowers Pi package's automatic bootstrap hook is neutralized. `/sp-*` and explicit `/skill:*` commands still resolve the installed upstream skills. Do not preload domain skills through command config. Entrypoint `skills` are not overlay replacements — they are lifecycle/root skills with explicit trigger points.
+
+`diagnosing-superpowers` (Superpowers v6.4.1) is diagnostic, not workflow-entry: it remains model-invocable when the user asks "figure out what went wrong with superpowers in this session" and works through `/skill:diagnosing-superpowers`. It reads Pi session transcripts itself and dispatches its analyst subagents through the bundled `subagent` tool; the extension requires no additional wiring for it.
 
 Command-scoped workflow toggles can be changed through `/sp-settings`; model tier edits in the same overlay use a type-to-search picker backed by PI's authenticated model registry. The picker accepts `q` as search text, scrolls through all filtered results rather than only the visible page, and is followed by a thinking-level picker for the tier.
 

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [1.14.4] - 2026-09-22
+
+- Removed the non-functional bundled `superpowersSkills` config key while accepting legacy values as inert upgrade compatibility
+- Updated user docs for Superpowers v6.4.1 and dynamic skill discovery, including `diagnosing-superpowers`
+- Updated the Pi compatibility target to `^0.87.0` (verified against Pi 0.86.0/0.87.0 breaking changes; no behavioral changes required)
 - Updated Biome and its configuration schema to 2.5.13 to prevent VS Code language-server startup conflicts with stale versioned daemons.
 
 ## [1.14.3] - 2026-09-14

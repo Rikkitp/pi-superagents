@@ -2,9 +2,9 @@
 
 These are the parameters the **LLM agent** passes when it calls the `subagent` tool. These parameters are used to delegate work to Superpowers role agents.
 
-This reference targets Pi `^0.85.1` and Superpowers `v6.2+`.
+This reference targets Pi `^0.87.0` and Superpowers `v6.4.1`.
 
-These parameters apply after explicit Superpowers activation. The default `superagents.makeSuperpowersSkillsOptInOnly: true` setting keeps ordinary Pi requests outside the Superpowers workflow, including when the upstream obra/superpowers Pi package is installed.
+These parameters apply when an active Superpowers skill delegates through the `subagent` tool. The default `superagents.makeSuperpowersSkillsOptInOnly: true` setting disables the automatic `using-superpowers` bootstrap; `/sp-*`, explicit `/skill:*`, and independently triggered skills can still delegate.
 
 Maintenance note: static analysis runs with `pnpm exec fallow`; keep documented tool parameters and shared parameter types exported only when they are part of runtime or test-facing API.
 

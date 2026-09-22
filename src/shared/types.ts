@@ -446,7 +446,6 @@ export interface SuperpowersSettings {
 	interceptSkillCommands?: string[];
 	/** Require explicit `/sp-*` or `/skill:*` activation instead of automatic using-superpowers bootstrap. */
 	makeSuperpowersSkillsOptInOnly?: boolean;
-	superpowersSkills?: string[];
 	/** Global extensions applied to all subagent runs before agent-specific extensions. */
 	extensions?: string[];
 	/** Global tools appended to every subagent after role-specific tool policy. */

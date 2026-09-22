@@ -2,7 +2,7 @@
 
 `@teelicht/pi-superagents` loads configuration in two layers: **bundled defaults** and **user overrides**.
 
-This reference targets Pi `^0.85.1` and Superpowers `v6.2+`.
+This reference targets Pi `^0.87.0` and Superpowers `v6.4.1`.
 
 Bundled defaults ship inside the package and provide sensible baseline values. User overrides live in:
 
@@ -110,7 +110,6 @@ Configures the Superpowers workflow.
 | `modelTiers` | Maps abstract tier names (`cheap`, `balanced`, `max`, plus any custom tiers) to concrete model configs. |
 | `interceptSkillCommands` | List of skill names intercepted for Superpowers entry (`brainstorming`, `writing-plans`). |
 | `makeSuperpowersSkillsOptInOnly` | When `true` (default), hides `using-superpowers` from ordinary model skill selection and neutralizes obra/superpowers' automatic Pi bootstrap hook. Explicit `/sp-*` and `/skill:*` commands still work. |
-| `superpowersSkills` | List of Superpowers process skill names (bundled default, not user-configurable). |
 
 Built-in Superpowers roles normally use their frontmatter tier from `modelTiers`. The root dispatcher omits `model` and `tasks[].model` unless the user explicitly requests a one-off model override.
 
@@ -236,7 +235,7 @@ Bundled `/sp-implement-parallel` preset:
 }
 ```
 
-When preflight passes, Pi Superagents controls dependency-ready waves, persistent per-Task worktrees, and Task-number integration. `"per-task"` cadence follows the upstream task/re-review/final loop; `"final-only"` integrates successful Tasks before one whole-plan review. See [Skills Reference](skills.md#parallel-sdd-task-scheduling) for the dispatch contract and the [Worktree Isolation](worktrees.md#parallel-sdd-waves-vs-ordinary-parallel-calls) reference for the persistent worktree lifecycle.
+When preflight passes, Pi Superagents controls dependency-ready waves, persistent per-Task worktrees, and Task-number integration. `"per-task"` cadence follows the upstream task/re-review/final loop; `"final-only"` integrates successful Tasks before one whole-plan review. See [Skills Reference](skills.md#parallel-sdd-task-scheduling) for the dispatch contract and the [Worktree Isolation](worktrees.md#two-kinds-of-parallel-worktree) reference for the persistent worktree lifecycle.
 
 ## Inline Role Output
 
@@ -412,26 +411,7 @@ Before changing package metadata, install behavior, or default configuration fil
 
 ## Superpowers Skills
 
-The bundled `superpowersSkills` list defines process skills. Current list:
-
-```json
-"superpowersSkills": [
-  "using-superpowers",
-  "brainstorming",
-  "writing-plans",
-  "executing-plans",
-  "test-driven-development",
-  "requesting-code-review",
-  "receiving-code-review",
-  "verification-before-completion",
-  "subagent-driven-development",
-  "dispatching-parallel-agents",
-  "using-git-worktrees",
-  "finishing-a-development-branch"
-]
-```
-
-Skill selection is trigger-driven via `using-superpowers`. Do not preload domain skills through command config. Entrypoint `skills` are reserved for lifecycle/root skills with explicit trigger points.
+Pi discovers skills dynamically from the installed Superpowers package; Pi Superagents does not maintain a skill registry. Skill selection inside an explicit workflow is trigger-driven via `using-superpowers`. Do not preload domain skills through command config. Entrypoint `skills` are reserved for lifecycle/root skills with explicit trigger points.
 
 ## Status and Settings
 

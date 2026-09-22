@@ -36,7 +36,16 @@ export interface FormatConfigDiagnosticsOptions {
 
 const TOP_LEVEL_KEYS = new Set(["superagents"]);
 
-const SUPERAGENTS_KEYS = new Set(["commands", "modelTiers", "interceptSkillCommands", "extensions", "tools", "makeSuperpowersSkillsOptInOnly", "superpowersSkills"]);
+const SUPERAGENTS_KEYS = new Set([
+	"commands",
+	"modelTiers",
+	"interceptSkillCommands",
+	"extensions",
+	"tools",
+	"makeSuperpowersSkillsOptInOnly",
+	// ponytail: legacy no-op accepted so copied pre-removal configs do not disable the extension; remove in the next major release.
+	"superpowersSkills",
+]);
 
 /** Skills that can be intercepted for direct skill command interception. */
 const SUPPORTED_INTERCEPTED_SKILLS = new Set(["brainstorming", "writing-plans"]);
@@ -393,14 +402,6 @@ function validateSuperagentsSection(diagnostics: ConfigDiagnostic[], superagents
 	if ("makeSuperpowersSkillsOptInOnly" in superagents && typeof superagents.makeSuperpowersSkillsOptInOnly !== "boolean") {
 		pushConfigIssue(diagnostics, "superagents.makeSuperpowersSkillsOptInOnly", "must be a boolean.");
 	}
-	if ("superpowersSkills" in superagents) {
-		diagnostics.push({
-			level: "warning",
-			code: "defaults_only_key",
-			path: "superagents.superpowersSkills",
-			message: "is not user-configurable. It is defined in the bundled defaults and cannot be overridden.",
-		});
-	}
 }
 
 // ---------------------------------------------------------------------------
@@ -502,7 +503,6 @@ function mergeConfig(defaults: ExtensionConfig, overrides: ExtensionConfig): Ext
 					interceptSkillCommands: mergedInterceptSkillCommands,
 					extensions: mergedExtensions,
 					tools: mergedTools,
-					superpowersSkills: defaultSuperagents?.superpowersSkills ?? [],
 				}
 			: undefined;
 

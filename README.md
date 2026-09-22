@@ -1,6 +1,6 @@
 # @teelicht/pi-superagents
 
-[Pi agent-harness](https://pi.dev) extension to support [Superpowers](https://github.com/obra/superpowers) workflows using subagents. The official Superpowers Pi package injects the Superpowers skills into every session. By contrast, the pi-superagents extension leaves it up to the user to decide when Superpowers should be used.
+[Pi agent-harness](https://pi.dev) extension to support [Superpowers](https://github.com/obra/superpowers) workflows using subagents. The official Superpowers Pi package registers its skills and automatic bootstrap with Pi. By default, pi-superagents suppresses that automatic bootstrap while keeping the installed skills available for explicit or trigger-driven use.
 
 ## Features
 
@@ -18,7 +18,7 @@ pi install npm:@teelicht/pi-superagents
 ```
 
 > [!NOTE]
-> Requires Superpowers v6.2+ ([`superpowers` skills](https://skills.sh/obra/superpowers)), installable with `pi install git:github.com/obra/superpowers`.
+> Requires Pi `^0.87.0` and Superpowers v6.4.1+ ([`superpowers` skills](https://skills.sh/obra/superpowers)), installable with `pi install git:github.com/obra/superpowers`.
 
 On install, the extension creates `config.json` from the bundled defaults and migrates existing configs in place with a timestamped backup. To remove:
 
@@ -43,7 +43,7 @@ pnpm run install:local
 | `/subagents-status`              | Open active and recent subagent run status                            |
 | `/sp-settings`                   | Open superagents settings                                             |
 
-Superpowers runs only through these commands by default (`superagents.makeSuperpowersSkillsOptInOnly: true`); set it to `false` in `config.json` to restore automatic activation.
+With `superagents.makeSuperpowersSkillsOptInOnly: true` (default), the automatic `using-superpowers` bootstrap is disabled. Start workflows through `/sp-*` or explicit `/skill:*` commands; other installed skills such as `diagnosing-superpowers` remain available through their own triggers. Set the option to `false` to restore automatic bootstrap.
 
 ## Documentation
 

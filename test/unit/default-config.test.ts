@@ -14,7 +14,7 @@ import { describe, it } from "node:test";
 
 const TOP_LEVEL_OPTION_KEYS = ["superagents"] as const;
 
-const SUPERAGENTS_OPTION_KEYS = ["commands", "modelTiers", "interceptSkillCommands", "extensions", "tools", "makeSuperpowersSkillsOptInOnly", "superpowersSkills"] as const;
+const SUPERAGENTS_OPTION_KEYS = ["commands", "modelTiers", "interceptSkillCommands", "extensions", "tools", "makeSuperpowersSkillsOptInOnly"] as const;
 
 /**
  * Read and parse a config JSON file from the repository root.
@@ -31,10 +31,9 @@ function readConfigFile(fileName: string): Record<string, unknown> {
  * Assert that a config object exposes the current public config surface.
  *
  * @param config Parsed config object to inspect.
- * @param bundledDefaultsOnly When true, includes bundled-defaults-only keys like superpowersSkills.
  * @param bundledDefaults Has built-in commands (true for default-config.json, false for config.example.json).
  */
-function assertPublicConfigSurface(config: Record<string, unknown>, bundledDefaultsOnly = false, bundledDefaults = true): void {
+function assertPublicConfigSurface(config: Record<string, unknown>, bundledDefaults = true): void {
 	const superagents = config.superagents as {
 		[key: string]: unknown;
 		modelTiers?: Record<string, unknown>;
@@ -43,7 +42,6 @@ function assertPublicConfigSurface(config: Record<string, unknown>, bundledDefau
 		extensions?: unknown;
 		tools?: unknown;
 		makeSuperpowersSkillsOptInOnly?: unknown;
-		superpowersSkills?: unknown;
 	};
 	const metadataKeys = Object.keys(config).filter((key) => key.startsWith("_"));
 
@@ -51,8 +49,6 @@ function assertPublicConfigSurface(config: Record<string, unknown>, bundledDefau
 		assert.ok(key in config, `Expected option '${key}' to be present`);
 	}
 	for (const key of SUPERAGENTS_OPTION_KEYS) {
-		// superpowersSkills is bundled-defaults-only, not user-configurable
-		if (key === "superpowersSkills" && !bundledDefaultsOnly) continue;
 		assert.ok(key in superagents, `Expected superagents option '${key}' to be present`);
 	}
 
@@ -103,7 +99,7 @@ function assertPublicConfigSurface(config: Record<string, unknown>, bundledDefau
 
 void describe("config templates", () => {
 	void it("ships all supported runtime defaults", () => {
-		assertPublicConfigSurface(readConfigFile("default-config.json"), true, true);
+		assertPublicConfigSurface(readConfigFile("default-config.json"), true);
 	});
 
 	void it("keeps globally configured tools out of built-in agent frontmatter", () => {
@@ -127,35 +123,12 @@ void describe("config templates", () => {
 	});
 
 	void it("ships a parseable user-facing example config with the same public surface", () => {
-		assertPublicConfigSurface(readConfigFile("config.example.json"), false, false);
+		assertPublicConfigSurface(readConfigFile("config.example.json"), false);
 	});
 
 	void it("keeps direct skill interception opt-in by default", () => {
 		const config = readConfigFile("default-config.json");
 		const superagents = config.superagents as Record<string, unknown>;
 		assert.deepEqual(superagents.interceptSkillCommands, []);
-	});
-
-	void it("includes superpowers skills in bundled defaults", () => {
-		const config = readConfigFile("default-config.json");
-		const skills = (config.superagents as Record<string, unknown>).superpowersSkills as string[];
-		assert.ok(Array.isArray(skills));
-		assert.ok(skills.includes("using-superpowers"));
-		assert.ok(skills.includes("brainstorming"));
-		assert.ok(skills.includes("writing-plans"));
-		assert.ok(skills.includes("executing-plans"));
-		assert.ok(skills.includes("test-driven-development"));
-		assert.ok(skills.includes("requesting-code-review"));
-		assert.ok(skills.includes("receiving-code-review"));
-		assert.ok(skills.includes("verification-before-completion"));
-		assert.ok(skills.includes("subagent-driven-development"));
-		assert.ok(skills.includes("dispatching-parallel-agents"));
-		assert.ok(skills.includes("using-git-worktrees"));
-		assert.ok(skills.includes("finishing-a-development-branch"));
-	});
-
-	void it("does not include superpowersSkills in the example config", () => {
-		const config = readConfigFile("config.example.json");
-		assert.equal("superpowersSkills" in (config.superagents as Record<string, unknown>), false);
 	});
 });
