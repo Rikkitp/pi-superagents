@@ -177,6 +177,58 @@ void describe("superpowers_plan_review tool", () => {
 		assert.equal(result.content[0].text, "Plannotator approved the plan review. Continue the Superpowers workflow.");
 	});
 
+	void it("reads the saved plan file when planContent is omitted", async () => {
+		const mock = await loadExtensionWithPlannotatorEnabled();
+		const tool = mock.tools.get("superpowers_plan_review");
+		assert.ok(tool, "expected superpowers_plan_review tool to be registered");
+
+		const planDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-plan-file-"));
+		tempDirs.push(planDir);
+		const planFile = path.join(planDir, "plan.md");
+		fs.writeFileSync(planFile, "# Saved plan\nRead from disk", "utf-8");
+
+		mock.pi.events.on("plannotator:request", (request) => {
+			const typedRequest = request as {
+				payload: { planContent: string; planFilePath?: string };
+				respond(response: unknown): void;
+			};
+			assert.equal(typedRequest.payload.planContent, "# Saved plan\nRead from disk");
+			assert.equal(typedRequest.payload.planFilePath, planFile);
+			typedRequest.respond({
+				status: "handled",
+				result: { status: "pending", reviewId: "review-from-file" },
+			});
+			mock.pi.events.emit("plannotator:review-result", {
+				reviewId: "review-from-file",
+				approved: true,
+			});
+		});
+
+		const result = await tool.execute("review-from-file", { planFilePath: planFile }, undefined, undefined, createCtx([]));
+
+		assert.equal(result.content[0].text, "Plannotator approved the plan review. Continue the Superpowers workflow.");
+	});
+
+	void it("returns an error when neither content nor file path is provided", async () => {
+		const mock = await loadExtensionWithPlannotatorEnabled();
+		const tool = mock.tools.get("superpowers_plan_review");
+		assert.ok(tool, "expected superpowers_plan_review tool to be registered");
+
+		const result = await tool.execute("review-no-input", {}, undefined, undefined, createCtx([]));
+
+		assert.match(result.content[0].text, /No review content provided/);
+	});
+
+	void it("returns an error when the file path cannot be read", async () => {
+		const mock = await loadExtensionWithPlannotatorEnabled();
+		const tool = mock.tools.get("superpowers_plan_review");
+		assert.ok(tool, "expected superpowers_plan_review tool to be registered");
+
+		const result = await tool.execute("review-missing-file", { planFilePath: "/nonexistent/plan.md" }, undefined, undefined, createCtx([]));
+
+		assert.match(result.content[0].text, /Could not read saved artifact/);
+	});
+
 	void it("returns the disabled guidance when plannotator is not enabled", async () => {
 		const home = fs.mkdtempSync(path.join(os.tmpdir(), "pi-plannotator-disabled-home-"));
 		tempDirs.push(home);
@@ -332,6 +384,38 @@ void describe("superpowers_spec_review tool", () => {
 		});
 
 		const result = await tool.execute("spec-review-approval", { specContent: "Final spec", specFilePath: "docs/superpowers/specs/spec.md" }, undefined, undefined, createCtx([]));
+
+		assert.equal(result.content[0].text, "Plannotator approved the saved spec review. Continue the Superpowers workflow.");
+	});
+
+	void it("reads the saved spec file when specContent is omitted", async () => {
+		const mock = await loadExtensionWithPlannotatorEnabled();
+		const tool = mock.tools.get("superpowers_spec_review");
+		assert.ok(tool, "expected superpowers_spec_review tool to be registered");
+
+		const specDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-spec-file-"));
+		tempDirs.push(specDir);
+		const specFile = path.join(specDir, "spec.md");
+		fs.writeFileSync(specFile, "# Saved spec\nRead from disk", "utf-8");
+
+		mock.pi.events.on("plannotator:request", (request) => {
+			const typedRequest = request as {
+				payload: { planContent: string; planFilePath?: string };
+				respond(response: unknown): void;
+			};
+			assert.equal(typedRequest.payload.planContent, "# Saved spec\nRead from disk");
+			assert.equal(typedRequest.payload.planFilePath, specFile);
+			typedRequest.respond({
+				status: "handled",
+				result: { status: "pending", reviewId: "spec-review-from-file" },
+			});
+			mock.pi.events.emit("plannotator:review-result", {
+				reviewId: "spec-review-from-file",
+				approved: true,
+			});
+		});
+
+		const result = await tool.execute("spec-review-from-file", { specFilePath: specFile }, undefined, undefined, createCtx([]));
 
 		assert.equal(result.content[0].text, "Plannotator approved the saved spec review. Continue the Superpowers workflow.");
 	});

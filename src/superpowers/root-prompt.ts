@@ -230,7 +230,8 @@ function buildPlannotatorReviewContract(usePlannotatorReview: boolean): string {
 
 	return [
 		"Plannotator browser review is ENABLED by config.",
-		"At the review gate for this workflow phase, call the appropriate Plannotator review tool with the saved artifact content and file path.",
+		"At the review gate for this workflow phase, call the appropriate Plannotator review tool with the saved artifact file path; the tool reads the file, so do not re-paste the artifact content.",
+		"Pass the artifact content instead only when no file was saved.",
 		"Use `superpowers_plan_review` for implementation plans and `superpowers_spec_review` for brainstorming specs.",
 		"If the review tool returns approved, continue the workflow.",
 		"If the review tool returns rejected, treat the response as review feedback, revise the artifact, save it, and resubmit.",

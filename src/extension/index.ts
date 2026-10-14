@@ -146,8 +146,10 @@ function discoverEntrypointCommandNames(cwd: string, includeProject: boolean): s
 }
 
 const SuperpowersPlanReviewParams = Type.Object({
-	planContent: Type.String({ description: "Final Superpowers implementation plan content to review." }),
-	planFilePath: Type.Optional(Type.String({ description: "Saved plan file path for the final Superpowers plan when available." })),
+	planContent: Type.Optional(
+		Type.String({ description: "Final Superpowers implementation plan content to review. Omit when planFilePath is provided; the file is read instead." }),
+	),
+	planFilePath: Type.Optional(Type.String({ description: "Saved plan file path. When provided without planContent, the file is read and sent for review." })),
 });
 
 /**
@@ -157,8 +159,10 @@ const SuperpowersPlanReviewParams = Type.Object({
  * through the Plannotator browser review bridge.
  */
 const SuperpowersSpecReviewParams = Type.Object({
-	specContent: Type.String({ description: "Final saved Superpowers brainstorming spec content to review." }),
-	specFilePath: Type.Optional(Type.String({ description: "Saved Superpowers brainstorming spec file path when available." })),
+	specContent: Type.Optional(
+		Type.String({ description: "Final saved Superpowers brainstorming spec content to review. Omit when specFilePath is provided; the file is read instead." }),
+	),
+	specFilePath: Type.Optional(Type.String({ description: "Saved spec file path. When provided without specContent, the file is read and sent for review." })),
 });
 
 /**
@@ -293,22 +297,49 @@ export default function registerSubagentExtension(pi: ExtensionAPI): void {
 	}
 
 	/**
+	 * Resolve review artifact content, reading the saved file when inline content is omitted.
+	 *
+	 * @param content Inline artifact content, when provided.
+	 * @param filePath Saved artifact path used when inline content is omitted.
+	 * @param cwd Base directory for resolving relative artifact paths.
+	 * @returns Resolved content, or an error message when neither source yields content.
+	 */
+	function resolveArtifactContent(content: string | undefined, filePath: string | undefined, cwd: string): { ok: true; content: string } | { ok: false; error: string } {
+		if (content?.trim()) {
+			return { ok: true, content };
+		}
+		if (filePath) {
+			try {
+				return { ok: true, content: fs.readFileSync(path.isAbsolute(filePath) ? filePath : path.resolve(cwd, filePath), "utf-8") };
+			} catch (error) {
+				return { ok: false, error: `Could not read saved artifact at ${filePath}: ${error instanceof Error ? error.message : String(error)}` };
+			}
+		}
+		return { ok: false, error: "No review content provided. Pass the saved artifact content or a readable artifact file path." };
+	}
+
+	/**
 	 * Execute the root-session Plannotator plan review bridge.
 	 *
-	 * @param params Final plan content plus optional saved plan path.
+	 * @param params Optional final plan content plus optional saved plan path; the file is read when content is omitted.
 	 * @param ctx Extension context for optional UI notifications.
 	 * @returns Fail-soft review status text for the Superpowers root prompt contract.
 	 */
-	async function executeSuperpowersPlanReview(params: { planContent: string; planFilePath?: string }, ctx: ExtensionContext): Promise<AgentToolResult<Details>> {
+	async function executeSuperpowersPlanReview(params: { planContent?: string; planFilePath?: string }, ctx: ExtensionContext): Promise<AgentToolResult<Details>> {
 		// Read live config at execution time to respect runtime changes
 		if (configStore.getConfig().superagents?.commands?.["sp-plan"]?.usePlannotator !== true) {
 			return createTextToolResult("Plannotator review is disabled in config. Continue with the normal text-based Superpowers approval flow.");
 		}
 
+		const resolved = resolveArtifactContent(params.planContent, params.planFilePath, ctx.cwd);
+		if (!resolved.ok) {
+			return createTextToolResult(resolved.error);
+		}
+
 		try {
 			const result = await requestPlannotatorPlanReview({
 				events: pi.events,
-				planContent: params.planContent,
+				planContent: resolved.content,
 				planFilePath: params.planFilePath,
 			});
 
@@ -340,21 +371,26 @@ export default function registerSubagentExtension(pi: ExtensionAPI): void {
 	 * mapping specContent/planContent for compatibility with the Plannotator event contract.
 	 * Emits the same "plan-review" action as plan review to maintain bridge compatibility.
 	 *
-	 * @param params Final spec content plus optional saved spec path.
+	 * @param params Optional final spec content plus optional saved spec path; the file is read when content is omitted.
 	 * @param ctx Extension context for optional UI notifications.
 	 * @returns Fail-soft saved-spec review status text.
 	 */
-	async function executeSuperpowersSpecReview(params: { specContent: string; specFilePath?: string }, ctx: ExtensionContext): Promise<AgentToolResult<Details>> {
+	async function executeSuperpowersSpecReview(params: { specContent?: string; specFilePath?: string }, ctx: ExtensionContext): Promise<AgentToolResult<Details>> {
 		// Read live config at execution time to respect runtime changes
 		if (configStore.getConfig().superagents?.commands?.["sp-brainstorm"]?.usePlannotator !== true) {
 			return createTextToolResult("Plannotator saved spec review is disabled in config. Continue with the normal text-based Superpowers review flow.");
+		}
+
+		const resolved = resolveArtifactContent(params.specContent, params.specFilePath, ctx.cwd);
+		if (!resolved.ok) {
+			return createTextToolResult(resolved.error);
 		}
 
 		try {
 			// Reuse the plan-review bridge internally; map specContent to planContent
 			const result = await requestPlannotatorPlanReview({
 				events: pi.events,
-				planContent: params.specContent,
+				planContent: resolved.content,
 				planFilePath: params.specFilePath,
 			});
 
@@ -385,7 +421,7 @@ export default function registerSubagentExtension(pi: ExtensionAPI): void {
 		description: "Send the final Superpowers implementation plan through the optional Plannotator browser review bridge. Use only at the normal plan approval point.",
 		parameters: SuperpowersPlanReviewParams,
 		execute(_id, params, _signal, _onUpdate, ctx) {
-			return executeSuperpowersPlanReview(params as { planContent: string; planFilePath?: string }, ctx);
+			return executeSuperpowersPlanReview(params as { planContent?: string; planFilePath?: string }, ctx);
 		},
 	};
 
@@ -395,7 +431,7 @@ export default function registerSubagentExtension(pi: ExtensionAPI): void {
 		description: "Send the final saved Superpowers brainstorming spec through the optional Plannotator browser review bridge. Use only after the saved brainstorming spec exists.",
 		parameters: SuperpowersSpecReviewParams,
 		execute(_id, params, _signal, _onUpdate, ctx) {
-			return executeSuperpowersSpecReview(params as { specContent: string; specFilePath?: string }, ctx);
+			return executeSuperpowersSpecReview(params as { specContent?: string; specFilePath?: string }, ctx);
 		},
 	};
 
