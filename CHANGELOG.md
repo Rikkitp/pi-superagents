@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- `superpowers_plan_review` and `superpowers_spec_review` now accept a saved artifact file path without inline content: the file is read at review time, so the model no longer re-pastes full spec/plan text into the tool call.
+
 ## [1.14.4] - 2026-09-22
 
 - Removed the non-functional bundled `superpowersSkills` config key while accepting legacy values as inert upgrade compatibility

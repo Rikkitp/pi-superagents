@@ -105,15 +105,15 @@ These tools are registered for root Superpowers workflows and are used by the pr
 
 | Param | Type | Description |
 | ----- | ---- | ----------- |
-| `planContent` | string | Final Superpowers implementation plan content to review. |
-| `planFilePath` | string, optional | Saved plan file path. |
+| `planContent` | string, optional | Final Superpowers implementation plan content to review. Omit when `planFilePath` is provided; the file is read instead. |
+| `planFilePath` | string, optional | Saved plan file path. When provided without `planContent`, the file is read and sent for review. |
 
 ### `superpowers_spec_review`
 
 | Param | Type | Description |
 | ----- | ---- | ----------- |
-| `specContent` | string | Final saved Superpowers brainstorming spec content to review. |
-| `specFilePath` | string, optional | Saved spec file path. |
+| `specContent` | string, optional | Final saved Superpowers brainstorming spec content to review. Omit when `specFilePath` is provided; the file is read instead. |
+| `specFilePath` | string, optional | Saved spec file path. When provided without `specContent`, the file is read and sent for review. |
 
 ## Settings Overlay
 
