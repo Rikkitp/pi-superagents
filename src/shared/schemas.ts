@@ -26,7 +26,7 @@ const TaskItem = Type.Object(
 		model: Type.Optional(
 			Type.String({
 				description:
-					"Optional one-off model override. Omit during normal Superpowers dispatch so the role's frontmatter tier resolves through configuration; set only when the user explicitly requests a one-off override.",
+					"Optional one-off model override. Omit during normal Superpowers dispatch so the role's frontmatter tier resolves through configuration; set only when the user explicitly requests a one-off override. The special value \"default\" resolves to the current session's model.",
 			}),
 		),
 		skill: Type.Optional(SkillOverride),
@@ -73,7 +73,7 @@ export const SubagentParams = Type.Object(
 		model: Type.Optional(
 			Type.String({
 				description:
-					"Optional one-off model override. Omit during normal Superpowers dispatch so the role's frontmatter tier resolves through configuration; set only when the user explicitly requests a one-off override.",
+					"Optional one-off model override. Omit during normal Superpowers dispatch so the role's frontmatter tier resolves through configuration; set only when the user explicitly requests a one-off override. The special value \"default\" resolves to the current session's model.",
 			}),
 		),
 		resumeSession: Type.Optional(

@@ -107,7 +107,7 @@ Configures the Superpowers workflow.
 | `commands` | Map of command behavior presets. Each preset has per-command policy booleans. Slash commands are registered from interactive entrypoint agents; `config.json` only controls behavior flags for existing entrypoint commands. |
 | `extensions` | Array of local extension paths or Pi extension source specs that every subagent receives. Implicit Pi extension discovery is disabled by default; add extensions here for child Pi processes. |
 | `tools` | Array of tool names or tool extension paths appended to every subagent after role-specific tool policy. Use this for shared tools you do not want to repeat in every agent frontmatter file. |
-| `modelTiers` | Maps abstract tier names (`cheap`, `balanced`, `max`, plus any custom tiers) to concrete model configs. |
+| `modelTiers` | Maps abstract tier names (`cheap`, `balanced`, `max`, plus any custom tiers) to concrete model configs. A tier `model` (or string-shorthand tier) may be the special value `"default"` to follow the current session model. |
 | `interceptSkillCommands` | List of skill names intercepted for Superpowers entry (`brainstorming`, `writing-plans`). |
 | `makeSuperpowersSkillsOptInOnly` | When `true` (default), hides `using-superpowers` from ordinary model skill selection and neutralizes obra/superpowers' automatic Pi bootstrap hook. Explicit `/sp-*` and `/skill:*` commands still work. |
 
@@ -351,6 +351,24 @@ The reserved tier names `cheap`, `balanced`, `max`, and `reasoning` are always t
 
 > [!NOTE]
 > In `config.example.json`, `creative` and `legacy` are illustrative custom tiers added to demonstrate the surface; they are not built-in tiers. `thinking` is optional in any tier definition.
+
+### The `default` model sentinel
+
+Use the special model value `"default"` in a tier's `model` field (or as a string-shorthand tier) to resolve the tier to the **current session's model** at launch time instead of a fixed model. The tier's `thinking` level (when configured) still applies to the resolved session model. If the session model is unknown at launch, the subagent launch is halted with an error naming the `default` sentinel rather than passing the literal `default` to Pi.
+
+```json
+{
+  "superagents": {
+    "modelTiers": {
+      "cheap": { "model": "default" },
+      "balanced": { "model": "default", "thinking": "medium" },
+      "max": "default"
+    }
+  }
+}
+```
+
+The same `"default"` value is accepted as a one-off `model` override when invoking the `subagent` tool, so a single delegated run can follow the session model without editing the config.
 
 You can edit model tier mappings during an active PI session with `/sp-settings`. The model picker reads PI's authenticated model registry, supports type-to-search filtering by provider, ID, or display name (including names containing `q`), scrolls keyboard selection through the full filtered model list, then asks for the tier thinking level. Successful tier edits write the selected `provider/model` and optional `thinking` value to `config.json` and apply to future Superpowers subagents immediately. Tier edits never retroactively re-target an already-running child; a child Pi process keeps the model it launched with until that run completes.
 

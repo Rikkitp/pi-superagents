@@ -44,7 +44,7 @@ import { getPiSpawnCommand } from "./pi-spawn.ts";
 import { deriveCompletionEnvelope } from "./result-delivery.ts";
 import { globalRunHistory } from "./run-history.ts";
 import { findMissingSubagentExtensionPath, findMissingSubagentToolPath, resolveSubagentExtensions } from "./superagents-config.ts";
-import { inferExecutionRole, resolveEffectiveModel, resolveRoleTools } from "./superpowers-policy.ts";
+import { DEFAULT_MODEL_SENTINEL, inferExecutionRole, resolveEffectiveModel, resolveRoleTools } from "./superpowers-policy.ts";
 
 /**
  * Attach lifecycle sidecar result and derive completion envelope.
@@ -135,6 +135,8 @@ interface ResolvedChildExecutionOptions {
 	systemPrompt: string;
 	/** Set when the agent references a model tier with no usable configuration; halts the launch. */
 	unresolvedTier?: string;
+	/** Set when the "default" model sentinel was requested but the session model is unknown; halts the launch. */
+	unresolvedDefault?: boolean;
 }
 
 /**
@@ -185,7 +187,7 @@ function resolveChildExecutionOptions(runtimeCwd: string, agent: AgentConfig, op
 	const useTestDrivenDevelopment = options.useTestDrivenDevelopment ?? false;
 	const config = options.config ?? {};
 	const role = inferExecutionRole(agent.name);
-	const resolvedModel = resolveEffectiveModel({ agentModel: agent.model, modelOverride: options.modelOverride, config });
+	const resolvedModel = resolveEffectiveModel({ agentModel: agent.model, modelOverride: options.modelOverride, sessionModel: options.sessionModel, config });
 	const effectiveModel = resolvedModel.model;
 	const hasModelOverride = options.modelOverride !== undefined;
 	const launchThinking = extractThinkingSuffix(effectiveModel) ?? toThinkingLevel(agent.thinking, resolvedModel.thinking, hasModelOverride);
@@ -214,7 +216,7 @@ function resolveChildExecutionOptions(runtimeCwd: string, agent: AgentConfig, op
 		systemPrompt = systemPrompt ? `${systemPrompt}\n\n${skillInjection}` : skillInjection;
 	}
 
-	return { workflow, effectiveModel, launchThinking, effectiveTools, skillNames, resolvedSkillNames, skillsWarning, systemPrompt, unresolvedTier: resolvedModel.unresolvedTier };
+	return { workflow, effectiveModel, launchThinking, effectiveTools, skillNames, resolvedSkillNames, skillsWarning, systemPrompt, unresolvedTier: resolvedModel.unresolvedTier, unresolvedDefault: resolvedModel.unresolvedDefault };
 }
 
 /**
@@ -269,6 +271,13 @@ function prepareChildLaunch(runtimeCwd: string, agentName: string, task: string,
 			agentName,
 			task,
 			`Model tier '${execution.unresolvedTier}' is not configured. Set superagents.modelTiers.${execution.unresolvedTier} in config.json before launching this agent.`,
+		);
+	}
+	if (execution.unresolvedDefault) {
+		return createLaunchErrorResult(
+			agentName,
+			task,
+			`Model '${DEFAULT_MODEL_SENTINEL}' was requested but the current session model is unknown. Set an explicit model in superagents.modelTiers or pass a concrete model override.`,
 		);
 	}
 	const effectiveExtensions = includeLifecycleExtension(

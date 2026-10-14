@@ -13,6 +13,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+	DEFAULT_MODEL_SENTINEL,
+	formatSessionModel,
 	inferExecutionRole,
 	RESERVED_MODEL_TIERS,
 	resolveEffectiveModel,
@@ -445,5 +447,59 @@ void describe("resolveEffectiveModel", () => {
 
 	void it("returns no model when the agent declares no model and nothing is configured", () => {
 		assert.deepEqual(resolveEffectiveModel({ agentModel: undefined, config: {} }), {});
+	});
+});
+
+void describe("formatSessionModel", () => {
+	void it("formats a session model as provider/id", () => {
+		assert.equal(formatSessionModel({ provider: "anthropic", id: "claude-opus-4.6" }), "anthropic/claude-opus-4.6");
+	});
+
+	void it("returns undefined when the session model is unknown", () => {
+		assert.equal(formatSessionModel(undefined), undefined);
+	});
+});
+
+void describe("resolveEffectiveModel default sentinel", () => {
+	void it("exposes the default model sentinel", () => {
+		assert.equal(DEFAULT_MODEL_SENTINEL, "default");
+	});
+
+	void it("resolves a default model override to the current session model", () => {
+		assert.deepEqual(
+			resolveEffectiveModel({ modelOverride: "default", sessionModel: "selectel/qwen3-8-27b-nvfp4", config: {} }),
+			{ model: "selectel/qwen3-8-27b-nvfp4" },
+		);
+	});
+
+	void it("marks a default model override unresolved when the session model is unknown", () => {
+		assert.deepEqual(resolveEffectiveModel({ modelOverride: "default", config: {} }), { unresolvedDefault: true });
+	});
+
+	void it("resolves a tier configured with the default sentinel to the session model, keeping thinking", () => {
+		const config = { superagents: { modelTiers: { cheap: { model: "default", thinking: "high" } } } } as const;
+		assert.deepEqual(resolveEffectiveModel({ agentModel: "cheap", sessionModel: "anthropic/claude-opus-4.6", config }), {
+			model: "anthropic/claude-opus-4.6",
+			thinking: "high",
+		});
+	});
+
+	void it("resolves a string-shorthand tier configured with the default sentinel to the session model", () => {
+		const config = { superagents: { modelTiers: { balanced: "default" } } } as const;
+		assert.deepEqual(resolveEffectiveModel({ agentModel: "balanced", sessionModel: "openai/gpt-5.4", config }), {
+			model: "openai/gpt-5.4",
+			thinking: undefined,
+		});
+	});
+
+	void it("marks a tier configured with the default sentinel unresolved when the session model is unknown", () => {
+		const config = { superagents: { modelTiers: { cheap: { model: "default" } } } } as const;
+		assert.deepEqual(resolveEffectiveModel({ agentModel: "cheap", config }), { unresolvedDefault: true });
+	});
+
+	void it("passes a concrete model through unchanged when it is not the sentinel", () => {
+		assert.deepEqual(resolveEffectiveModel({ modelOverride: "anthropic/claude-sonnet", sessionModel: "openai/gpt-5.4", config: {} }), {
+			model: "anthropic/claude-sonnet",
+		});
 	});
 });

@@ -466,6 +466,49 @@ void describe("single sync execution", { skip: !available ? "pi packages not ava
 		assert.equal(mockPi.callCount(), 0, "child pi must not be spawned for a malformed tier");
 	});
 
+	void it("halts before spawning when a tier uses the default sentinel but the session model is unknown", async () => {
+		mockPi.onCall({ echoArgs: true });
+		const agents = [makeAgent("sp-recon", { model: "cheap" })];
+
+		const result = await runPreparedChild(tempDir, agents, "sp-recon", "Inspect the auth flow", {
+			workflow: "superpowers",
+			config: { superagents: { modelTiers: { cheap: { model: "default" } } } },
+		});
+
+		assert.equal(result.exitCode, 1);
+		assert.ok(result.error?.includes("'default'"), `error should name the default sentinel: ${result.error}`);
+		assert.equal(mockPi.callCount(), 0, "child pi must not be spawned when the session model is unknown");
+	});
+
+	void it("launches with the session model when a tier uses the default sentinel", async () => {
+		mockPi.onCall({ echoArgs: true });
+		const agents = [makeAgent("sp-recon", { model: "cheap" })];
+
+		const result = await runPreparedChild(tempDir, agents, "sp-recon", "Inspect the auth flow", {
+			workflow: "superpowers",
+			sessionModel: "anthropic/claude-opus-4.6",
+			config: { superagents: { modelTiers: { cheap: { model: "default", thinking: "high" } } } },
+		});
+
+		assert.equal(result.exitCode, 0);
+		assertModelArg(result.messages, "anthropic/claude-opus-4.6:high");
+	});
+
+	void it("launches with the session model for a default model override", async () => {
+		mockPi.onCall({ echoArgs: true });
+		const agents = [makeAgent("sp-recon", { model: "cheap" })];
+
+		const result = await runPreparedChild(tempDir, agents, "sp-recon", "Inspect the auth flow", {
+			workflow: "superpowers",
+			sessionModel: "openai/gpt-5.4",
+			modelOverride: "default",
+			config: { superagents: { modelTiers: { cheap: { model: "openai/gpt-4o-mini" } } } },
+		});
+
+		assert.equal(result.exitCode, 0);
+		assertModelArg(result.messages, "openai/gpt-5.4");
+	});
+
 	void it("launches with the configured model when the reserved cheap tier is provided", async () => {
 		mockPi.onCall({ echoArgs: true });
 		const agents = [makeAgent("sp-recon", { model: "cheap" })];

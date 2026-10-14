@@ -20,7 +20,7 @@ Maintenance note: static analysis runs with `pnpm exec fallow`; keep documented 
 | `sessionMode`     | `"standalone" \| "lineage-only" \| "fork"` | `"lineage-only"` (bounded roles) | Child session visibility mode. `lineage-only` links to parent session tree without inheriting conversation turns; `fork` inherits full parent history; `standalone` is fully isolated. |
 | `cwd`             | string                                  | parent cwd                | Working directory for the subagent. |
 | `skill`           | `string \| string[] \| false`           | agent default             | Skills to inject into the agent prompt. `false` disables all skills. |
-| `model`           | string                                  | agent default             | Explicit user-requested one-off model override. Omit during normal Superpowers dispatch so the role's configured tier remains active. |
+| `model`           | string                                  | agent default             | Explicit user-requested one-off model override. Omit during normal Superpowers dispatch so the role's configured tier remains active. The special value `"default"` follows the current session's model. |
 | `resumeSession`   | string                                  | -                         | Absolute path to a prior pi-superagents `lineage-only` `sp-implementer` session JSONL file in the current parent lineage, continued synchronously. See [Resuming a Superpowers implementer session](#resuming-a-superpowers-implementer-session). |
 | `artifacts`       | boolean                                 | `true`                    | Whether to write debug artifacts (input/output logs). |
 | `includeProgress` | boolean                                 | `false`                   | Whether to include full internal progress metadata in the result. |
@@ -48,7 +48,7 @@ Subagent output is inline: the child Pi process streams assistant text back thro
 | `agent` | string  | Role agent name. |
 | `task`  | string  | Task description. |
 | `cwd`   | string  | Optional directory override for this specific parallel task. |
-| `model` | string  | Explicit user-requested one-off override for this task; omit it during normal tier-routed dispatch. |
+| `model` | string  | Explicit user-requested one-off override for this task; omit it during normal tier-routed dispatch. The special value `"default"` follows the current session's model. |
 | `skill` | mixed   | Optional skill override for this task. |
 | `resumeSession` | string | Optional `sp-implementer` lineage-only session file to continue. See [Resuming a Superpowers implementer session](#resuming-a-superpowers-implementer-session). Each `resumeSession` may appear at most once per `tasks[]` array. |
 

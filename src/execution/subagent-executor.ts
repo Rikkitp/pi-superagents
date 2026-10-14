@@ -66,7 +66,7 @@ import { createResultDeliveryStore } from "./result-delivery.ts";
 import { createSessionLaunchResolver, resolveRequestedSessionMode, type SessionFileForIndexInput, type SessionLaunchManager } from "./session-mode.ts";
 import { resolveStepBehavior } from "./settings.ts";
 import { resolveSuperagentWorktreeEnabled } from "./superagents-config.ts";
-import { resolveEffectiveModel } from "./superpowers-policy.ts";
+import { formatSessionModel, resolveEffectiveModel } from "./superpowers-policy.ts";
 import {
 	buildParallelWorktreeSuffix,
 	buildParallelWorktreeTaskCwdError,
@@ -129,6 +129,8 @@ interface ExecutionContextData {
 	useTestDrivenDevelopment: boolean;
 	/** Mirrors parent project-trust decision; gates project-local skill inputs. */
 	projectTrusted: boolean;
+	/** Current session model ("provider/id") for resolving the "default" model sentinel. */
+	sessionModel: string | undefined;
 }
 
 // ---------------------------------------------------------------------------
@@ -145,6 +147,8 @@ interface RunPlannedChildInput {
 	lifecycleExtensionEntry?: string;
 	/** Mirrors parent project-trust decision; gates project-local skill inputs in the child runner. */
 	projectTrusted?: boolean;
+	/** Current session model ("provider/id") for resolving the "default" model sentinel. */
+	sessionModel?: string;
 }
 
 const DEFAULT_LIFECYCLE_EXTENSION_ENTRY = new URL(["..", "extension", "index.ts"].join("/"), import.meta.url).pathname;
@@ -212,6 +216,7 @@ async function runPlannedChild(input: RunPlannedChildInput): Promise<SingleResul
 				maxOutput: input.plan.maxOutput,
 				maxSubagentDepth: input.plan.maxSubagentDepth,
 				modelOverride: input.plan.modelOverride,
+				sessionModel: input.sessionModel,
 				skills: input.plan.skills,
 				config: input.plan.config,
 				workflow: input.plan.workflow,
@@ -414,7 +419,7 @@ async function runParallelPath(data: ExecutionContextData, deps: ExecutorDeps): 
 				skills: configuredSkills,
 				includeProject: data.projectTrusted,
 			});
-			const resolvedModel = resolveEffectiveModel({ agentModel: agentConfigs[index].model, modelOverride: modelOverrides[index], config });
+			const resolvedModel = resolveEffectiveModel({ agentModel: agentConfigs[index].model, modelOverride: modelOverrides[index], sessionModel: data.sessionModel, config });
 			const provisionalModel = resolvedModel.model;
 			const hasModelOverride = modelOverrides[index] !== undefined;
 			// Extract thinking suffix from model first (matching child-runner behavior), then fall back to config-based resolution
@@ -504,6 +509,7 @@ async function runParallelPath(data: ExecutionContextData, deps: ExecutorDeps): 
 					config,
 					lifecycleExtensionEntry: deps.lifecycleExtensionEntry ?? DEFAULT_LIFECYCLE_EXTENSION_ENTRY,
 					projectTrusted: data.projectTrusted,
+					sessionModel: data.sessionModel,
 				});
 			} catch (error) {
 				return toUnexpectedChildFailure(plan, error);
@@ -656,6 +662,7 @@ async function runSinglePath(data: ExecutionContextData, deps: ExecutorDeps): Pr
 			config,
 			lifecycleExtensionEntry: deps.lifecycleExtensionEntry ?? DEFAULT_LIFECYCLE_EXTENSION_ENTRY,
 			projectTrusted: data.projectTrusted,
+			sessionModel: data.sessionModel,
 		}),
 	});
 
@@ -821,6 +828,7 @@ export function createSubagentExecutor(deps: ExecutorDeps): {
 			workflow: params.workflow ?? "superpowers",
 			useTestDrivenDevelopment: params.useTestDrivenDevelopment ?? false,
 			projectTrusted,
+			sessionModel: formatSessionModel(ctx.model),
 		};
 
 		try {

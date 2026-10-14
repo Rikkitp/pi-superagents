@@ -391,6 +391,8 @@ export interface RunSyncOptions {
 	maxSubagentDepth?: number;
 	/** Override the agent's default model (format: "provider/id" or just "id") */
 	modelOverride?: string;
+	/** Current session model ("provider/id") used to resolve the "default" model sentinel. */
+	sessionModel?: string;
 	/** Skills to inject; `false` disables all configured skills for this run. */
 	skills?: string[] | false;
 	/** Extension config for command-scoped execution policy resolution. */

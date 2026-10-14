@@ -120,6 +120,27 @@ export interface ResolvedEffectiveModel {
 	model?: string;
 	thinking?: ThinkingLevel;
 	unresolvedTier?: string;
+	/** Set when the "default" sentinel was requested but the current session model is unknown; halts the launch. */
+	unresolvedDefault?: boolean;
+}
+
+/**
+ * Sentinel model value that resolves to the current session's model.
+ *
+ * Configurable in `superagents.modelTiers.<tier>.model` (or the string-shorthand
+ * tier form) and as a one-off `model` override. When the resolved model equals
+ * this value it is replaced with the active session model at launch time.
+ */
+export const DEFAULT_MODEL_SENTINEL = "default";
+
+/**
+ * Format a session model reference as the `provider/id` string that pi's `--models` accepts.
+ *
+ * @param model A model reference with `provider` and `id`, or undefined when the session model is unknown.
+ * @returns The `provider/id` string, or undefined when no model is available.
+ */
+export function formatSessionModel(model: { provider: string; id: string } | undefined): string | undefined {
+	return model ? `${model.provider}/${model.id}` : undefined;
 }
 
 /**
@@ -142,6 +163,37 @@ function isTierReference(agentModel: string | undefined, config: ExtensionConfig
 /**
  * Resolve the effective model for a child launch, refusing to emit a literal tier name.
  *
+ * Resolves the base model (runtime override or configured tier) and then applies the
+ * {@link DEFAULT_MODEL_SENTINEL} substitution so a configured `"default"` follows the
+ * current session model.
+ *
+ * Inputs/outputs:
+ * - accepts the agent frontmatter `model`, an optional runtime override, config, and the session model
+ * - returns `{ model, thinking }` for a concrete or resolved-tier model
+ * - returns `{ unresolvedTier }` when the agent references a tier with no usable config
+ * - returns `{ unresolvedDefault }` when the sentinel was requested but the session model is unknown
+ *
+ * Invariants:
+ * - a resolved model equal to {@link DEFAULT_MODEL_SENTINEL} is replaced with
+ *   `sessionModel`; when `sessionModel` is unknown it surfaces as
+ *   `unresolvedDefault` so callers can halt with a clear error
+ *
+ * Failure modes:
+ * - the "default" sentinel with no known session model resolves to
+ *   `{ unresolvedDefault: true }` instead of passing the literal to Pi
+ */
+export function resolveEffectiveModel(input: {
+	agentModel?: string;
+	modelOverride?: string;
+	config: ExtensionConfig;
+	sessionModel?: string;
+}): ResolvedEffectiveModel {
+	return applyDefaultModelSentinel(resolveBaseModel(input), input.sessionModel);
+}
+
+/**
+ * Resolve the base effective model from a runtime override or a configured tier.
+ *
  * Inputs/outputs:
  * - accepts the agent frontmatter `model`, an optional runtime override, and config
  * - returns `{ model, thinking }` for a concrete or resolved-tier model
@@ -157,12 +209,26 @@ function isTierReference(agentModel: string | undefined, config: ExtensionConfig
  * - reserved or configured tier names with missing/empty configuration resolve
  *   to `{ unresolvedTier }` instead of silently falling back to the tier name
  */
-export function resolveEffectiveModel(input: { agentModel?: string; modelOverride?: string; config: ExtensionConfig }): ResolvedEffectiveModel {
+function resolveBaseModel(input: { agentModel?: string; modelOverride?: string; config: ExtensionConfig }): ResolvedEffectiveModel {
 	if (input.modelOverride !== undefined) return { model: input.modelOverride };
 	const tierModel = resolveModelForAgent({ workflow: "superpowers", agentModel: input.agentModel, config: input.config });
 	if (tierModel) return { model: tierModel.model, thinking: tierModel.thinking };
 	if (isTierReference(input.agentModel, input.config)) return { unresolvedTier: input.agentModel };
 	return input.agentModel !== undefined ? { model: input.agentModel } : {};
+}
+
+/**
+ * Replace the "default" sentinel in a resolved model with the session model.
+ *
+ * @param result Base resolution result from tier/override resolution.
+ * @param sessionModel Current session model string ("provider/id"), or undefined when unknown.
+ * @returns The result with the sentinel substituted, or `{ unresolvedDefault: true }`
+ *          when the sentinel was requested but no session model is available.
+ */
+function applyDefaultModelSentinel(result: ResolvedEffectiveModel, sessionModel: string | undefined): ResolvedEffectiveModel {
+	if (result.model !== DEFAULT_MODEL_SENTINEL) return result;
+	if (!sessionModel) return { unresolvedDefault: true };
+	return { ...result, model: sessionModel };
 }
 
 /**
