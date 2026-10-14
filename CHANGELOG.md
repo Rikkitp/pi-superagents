@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.14.5] - 2026-10-14
+
 - Added a `"default"` model sentinel: a `superagents.modelTiers` entry (object `model` or string-shorthand tier) or a one-off `subagent` `model` override set to `"default"` now resolves to the current session's model at launch time, keeping the tier's `thinking` level when configured.
 - `superpowers_plan_review` and `superpowers_spec_review` now accept a saved artifact file path without inline content: the file is read at review time, so the model no longer re-pastes full spec/plan text into the tool call.
 
