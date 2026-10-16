@@ -466,10 +466,7 @@ void describe("resolveEffectiveModel default sentinel", () => {
 	});
 
 	void it("resolves a default model override to the current session model", () => {
-		assert.deepEqual(
-			resolveEffectiveModel({ modelOverride: "default", sessionModel: "selectel/qwen3-8-27b-nvfp4", config: {} }),
-			{ model: "selectel/qwen3-8-27b-nvfp4" },
-		);
+		assert.deepEqual(resolveEffectiveModel({ modelOverride: "default", sessionModel: "selectel/qwen3-8-27b-nvfp4", config: {} }), { model: "selectel/qwen3-8-27b-nvfp4" });
 	});
 
 	void it("marks a default model override unresolved when the session model is unknown", () => {

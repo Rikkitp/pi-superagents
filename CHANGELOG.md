@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Removed dead internal code (unused helpers, imports, constants, and types) and fixed outstanding lint/format issues; no behavioral changes.
+
 ## [1.14.5] - 2026-10-14
 
 - Added a `"default"` model sentinel: a `superagents.modelTiers` entry (object `model` or string-shorthand tier) or a one-off `subagent` `model` override set to `"default"` now resolves to the current session's model at launch time, keeping the tier's `thinking` level when configured.

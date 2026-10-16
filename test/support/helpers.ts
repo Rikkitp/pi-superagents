@@ -176,30 +176,6 @@ export function makeAgent(
 }
 
 // ---------------------------------------------------------------------------
-// Minimal mock context for chain execution
-// ---------------------------------------------------------------------------
-
-/**
- * Create a minimal ExtensionContext mock for chain execution.
- * Only provides what executeChain needs when clarify=false.
- */
-function makeMinimalCtx(cwd: string): any {
-	return {
-		cwd,
-		hasUI: false,
-		ui: {
-			/* empty */
-		},
-		sessionManager: {
-			getSessionFile: () => null,
-		},
-		modelRegistry: {
-			getAvailable: () => [],
-		},
-	};
-}
-
-// ---------------------------------------------------------------------------
 // Dynamic module loading with graceful skip
 // ---------------------------------------------------------------------------
 

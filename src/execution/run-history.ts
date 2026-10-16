@@ -38,8 +38,6 @@ export interface RunEntry {
 
 const HISTORY_PATH_ENV = "PI_SUPERAGENTS_RUN_HISTORY_PATH";
 const DEFAULT_HISTORY_PATH = path.join(os.homedir(), ".pi", "agent", "run-history.jsonl");
-const ROTATE_READ_THRESHOLD = 1200;
-const ROTATE_KEEP = 1000;
 
 /**
  * Resolve the run-history JSONL path for the current process.
@@ -63,42 +61,6 @@ function recordRun(entry: RunEntry): void {
 	} catch {
 		// Best-effort — never crash the execution flow for history recording
 	}
-}
-
-function loadRunsForAgent(agent: string): RunEntry[] {
-	const historyPath = getHistoryPath();
-	if (!fs.existsSync(historyPath)) return [];
-	let raw: string;
-	try {
-		raw = fs.readFileSync(historyPath, "utf-8");
-	} catch {
-		return [];
-	}
-
-	let lines = raw
-		.split("\n")
-		.map((line) => line.trim())
-		.filter((line) => line.length > 0);
-
-	if (lines.length > ROTATE_READ_THRESHOLD) {
-		lines = lines.slice(-ROTATE_KEEP);
-		try {
-			fs.writeFileSync(historyPath, `${lines.join("\n")}\n`, "utf-8");
-		} catch {
-			/* empty */
-		}
-	}
-
-	return lines
-		.map((line) => {
-			try {
-				return JSON.parse(line) as RunEntry;
-			} catch {
-				return undefined;
-			}
-		})
-		.filter((entry): entry is RunEntry => entry !== undefined && entry.agent === agent)
-		.reverse();
 }
 
 /**

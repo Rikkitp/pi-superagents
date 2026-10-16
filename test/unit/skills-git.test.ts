@@ -195,9 +195,9 @@ void describe("buildSkillPathsForTest git package integration", () => {
 		assert.ok(trustedPaths.includes(npmSkillPath));
 		assert.ok(trustedPaths.includes(settingsSkillPath));
 
-		const gitIndex = trustedPaths.findIndex((entry) => entry === gitSkillPath);
-		assert.ok(gitIndex > trustedPaths.findIndex((entry) => entry === npmSkillPath), "git paths come after npm paths");
-		assert.ok(gitIndex < trustedPaths.findIndex((entry) => entry === settingsSkillPath), "git paths come before settings paths");
+		const gitIndex = trustedPaths.indexOf(gitSkillPath);
+		assert.ok(gitIndex > trustedPaths.indexOf(npmSkillPath), "git paths come after npm paths");
+		assert.ok(gitIndex < trustedPaths.indexOf(settingsSkillPath), "git paths come before settings paths");
 
 		const untrustedPaths = buildSkillPathsForTest(projectRoot, { includeProject: false });
 		assert.equal(untrustedPaths.includes(gitSkillPath), false, "project git path should be excluded when untrusted");

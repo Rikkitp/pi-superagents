@@ -214,7 +214,7 @@ void describe("child-runner prepared child args", () => {
 		mockPi.onCall({ echoArgs: true });
 		const result = await runPreparedChild(tempDir, [agent], agent.name, "Task", { runId: "args-capture", ...options });
 		if (result.exitCode !== 0) {
-			throw new Error("child exited with code " + result.exitCode + ": " + (result.error ?? "unknown error"));
+			throw new Error(`child exited with code ${result.exitCode}: ${result.error ?? "unknown error"}`);
 		}
 		const assistant = result.messages.find((message) => message.role === "assistant");
 		const text = assistant?.content.find((part) => part.type === "text")?.text ?? "[]";

@@ -216,7 +216,18 @@ function resolveChildExecutionOptions(runtimeCwd: string, agent: AgentConfig, op
 		systemPrompt = systemPrompt ? `${systemPrompt}\n\n${skillInjection}` : skillInjection;
 	}
 
-	return { workflow, effectiveModel, launchThinking, effectiveTools, skillNames, resolvedSkillNames, skillsWarning, systemPrompt, unresolvedTier: resolvedModel.unresolvedTier, unresolvedDefault: resolvedModel.unresolvedDefault };
+	return {
+		workflow,
+		effectiveModel,
+		launchThinking,
+		effectiveTools,
+		skillNames,
+		resolvedSkillNames,
+		skillsWarning,
+		systemPrompt,
+		unresolvedTier: resolvedModel.unresolvedTier,
+		unresolvedDefault: resolvedModel.unresolvedDefault,
+	};
 }
 
 /**

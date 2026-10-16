@@ -37,7 +37,6 @@ import {
 	type ExecutionRole,
 	type ExtensionConfig,
 	MAX_PARALLEL,
-	type MaxOutputConfig,
 	type PlannedChildRun,
 	resolveChildMaxSubagentDepth,
 	resolveCurrentMaxSubagentDepth,
@@ -45,7 +44,6 @@ import {
 	type SingleResult,
 	type SubagentParamsLike,
 	type SubagentState,
-	type TaskParam,
 	type WorkflowMode,
 } from "../shared/types.ts";
 import { runPreparedChild } from "./child-runner.ts";

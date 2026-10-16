@@ -129,17 +129,6 @@ function resolveCommandPreset(config: ExtensionConfig, commandName: string) {
 }
 
 /**
- * Find an interactive entrypoint agent that configures the current slash command.
- *
- * @param agents Discovered agent frontmatter definitions.
- * @param commandName Slash command name without leading slash.
- * @returns Matching entrypoint agent, if present.
- */
-function resolveEntrypointAgent(agents: readonly AgentConfig[] | undefined, commandName: string): AgentConfig | undefined {
-	return agents?.find((agent) => agent.kind === "entrypoint" && agent.execution === "interactive" && (agent.command === commandName || agent.name === commandName));
-}
-
-/**
  * Merge command preset, inline overrides, and entry skill into one run profile.
  *
  * @param input Effective config, command name, parsed arguments, and optional entry skill name.

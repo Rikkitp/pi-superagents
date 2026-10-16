@@ -182,12 +182,7 @@ function isTierReference(agentModel: string | undefined, config: ExtensionConfig
  * - the "default" sentinel with no known session model resolves to
  *   `{ unresolvedDefault: true }` instead of passing the literal to Pi
  */
-export function resolveEffectiveModel(input: {
-	agentModel?: string;
-	modelOverride?: string;
-	config: ExtensionConfig;
-	sessionModel?: string;
-}): ResolvedEffectiveModel {
+export function resolveEffectiveModel(input: { agentModel?: string; modelOverride?: string; config: ExtensionConfig; sessionModel?: string }): ResolvedEffectiveModel {
 	return applyDefaultModelSentinel(resolveBaseModel(input), input.sessionModel);
 }
 

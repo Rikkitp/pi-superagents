@@ -54,14 +54,6 @@ export type SessionMode = "standalone" | "lineage-only" | "fork";
 
 export type TaskDeliveryMode = "direct" | "artifact";
 
-/**
- * Model tier identifier.
- *
- * Built-in tiers: cheap, balanced, max
- * Users can define custom tiers (e.g., "creative", "free") in config.json.
- */
-export type ModelTier = string;
-
 export interface ModelTierConfig {
 	model: string;
 	thinking?: ThinkingLevel;
@@ -190,11 +182,6 @@ export interface SubagentCompletionEnvelope {
 // ============================================================================
 // Lifecycle Signals
 // ============================================================================
-
-/**
- * Type discriminator for lifecycle signals.
- */
-export type LifecycleSignalType = "done" | "ping";
 
 /**
  * Signal emitted when a subagent run completes successfully.
@@ -436,12 +423,6 @@ export interface SuperpowersCommandWorktreeSettings {
 	root?: string | null;
 }
 
-/** Worktree settings for superagents parallel execution. */
-export interface SuperpowersWorktreeSettings {
-	enabled?: boolean;
-	root?: string | null;
-}
-
 export interface SuperpowersSettings {
 	commands?: Record<string, SuperpowersCommandPreset>;
 	modelTiers?: Record<string, ModelTierSetting>;
@@ -478,7 +459,6 @@ export const DEFAULT_ARTIFACT_CONFIG: ArtifactConfig = {
 };
 
 export const MAX_PARALLEL = 8;
-const MAX_CONCURRENCY = 4;
 export const DEFAULT_SUBAGENT_MAX_DEPTH = 2;
 
 export const DEFAULT_FORK_PREAMBLE =

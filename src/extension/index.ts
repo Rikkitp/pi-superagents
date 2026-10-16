@@ -50,17 +50,6 @@ function getSubagentSessionRoot(parentSessionFile: string | null): string {
 }
 
 /**
- * Read one JSON config file from disk.
- *
- * @param filePath Absolute path to the JSON file.
- * @returns Parsed JSON value or `undefined` when the file is absent.
- */
-function _readJsonConfig(filePath: string): unknown {
-	if (!fs.existsSync(filePath)) return undefined;
-	return JSON.parse(fs.readFileSync(filePath, "utf-8"));
-}
-
-/**
  * Locate the package root from the extension entry directory.
  *
  * Inputs/outputs:
@@ -98,28 +87,6 @@ function resolvePackageRoot(entryDir: string): string {
  */
 function resolveUserConfigDir(): string {
 	return path.join(os.homedir(), ".pi", "agent", "extensions", "subagent");
-}
-
-/**
- * Create a directory and verify it is actually accessible.
- * On Windows with Azure AD/Entra ID, directories created shortly after
- * wake-from-sleep can end up with broken NTFS ACLs (null DACL) when the
- * cloud SID cannot be resolved without network connectivity. This leaves
- * the directory completely inaccessible to the creating user.
- */
-function _ensureAccessibleDir(dirPath: string): void {
-	fs.mkdirSync(dirPath, { recursive: true });
-	try {
-		fs.accessSync(dirPath, fs.constants.R_OK | fs.constants.W_OK);
-	} catch {
-		try {
-			fs.rmSync(dirPath, { recursive: true, force: true });
-		} catch {
-			// Best effort: retry mkdir/access even if cleanup fails.
-		}
-		fs.mkdirSync(dirPath, { recursive: true });
-		fs.accessSync(dirPath, fs.constants.R_OK | fs.constants.W_OK);
-	}
 }
 
 /**

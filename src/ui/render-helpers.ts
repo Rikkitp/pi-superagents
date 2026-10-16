@@ -3,9 +3,6 @@
  *
  * Provides layout primitives for border-box string array components:
  * - pad: right-pad strings to a minimum width
- * - row: identity row helper (for future theme integration)
- * - renderHeader: themed dashed header with title
- * - renderFooter: themed dashed footer with help text
  * - formatScrollInfo: scroll indicator labels
  * - renderFramedPanel: stable green framed panel with themed background
  */
@@ -17,25 +14,6 @@ import { truncateToWidth } from "@earendil-works/pi-tui";
 export function pad(text: string, length: number, char = " "): string {
 	if (text.length >= length) return text;
 	return text + char.repeat(length - text.length);
-}
-
-/** Identity row helper — returns text unchanged. Reserved for future theme-aware padding. */
-function row(text: string, _width: number, _theme: Theme): string {
-	return text;
-}
-
-/** Render a themed dashed header: `--[ Title ]-----` */
-function renderHeader(title: string, width: number, theme: Theme): string {
-	const prefix = "--[ ";
-	const suffix = " ]";
-	const dashCount = Math.max(2, width - prefix.length - title.length - suffix.length);
-	return theme.fg("accent", `${prefix}${title}${suffix}${"-".repeat(dashCount)}`);
-}
-
-/** Render a themed dashed footer with help text. */
-function renderFooter(text: string, width: number, theme: Theme): string {
-	const dashes = "-".repeat(width);
-	return theme.fg("dim", `${dashes}\n${text}`);
 }
 
 /** Format a scroll indicator showing items above/below the viewport. */
