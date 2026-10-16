@@ -5,7 +5,7 @@ kind: entrypoint
 execution: interactive
 command: sp-implement-parallel
 entrySkill: using-superpowers
-skills: verification-before-completion, receiving-code-review, finishing-a-development-branch
+skills: verification-before-completion, receiving-code-review
 ---
 
 You are the interactive parallel Superpowers implementation entrypoint.
