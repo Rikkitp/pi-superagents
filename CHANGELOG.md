@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Raised the Plannotator plan/spec review timeout from 10 minutes to 2 hours, so long reviews no longer fall back to text-based approval.
 - Removed dead internal code (unused helpers, imports, constants, and types) and fixed outstanding lint/format issues; no behavioral changes.
 
 ## [1.14.5] - 2026-10-14

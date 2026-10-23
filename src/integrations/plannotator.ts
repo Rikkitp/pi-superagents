@@ -16,7 +16,7 @@
 import { randomUUID } from "node:crypto";
 
 const DEFAULT_PLANNOTATOR_REQUEST_TIMEOUT_MS = 5_000;
-const DEFAULT_PLANNOTATOR_REVIEW_TIMEOUT_MS = 10 * 60 * 1_000;
+const DEFAULT_PLANNOTATOR_REVIEW_TIMEOUT_MS = 2 * 60 * 60 * 1_000;
 const DEFAULT_REJECTION_FEEDBACK = "Plan changes requested in Plannotator.";
 const REQUEST_TIMEOUT_REASON = "Plannotator did not respond to plan-review request before timeout.";
 const REVIEW_TIMEOUT_REASON = "Plannotator review-result did not arrive before timeout.";
